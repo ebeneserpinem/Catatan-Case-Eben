@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Case Log — Patch Management</title>
+<style>
+  :root{
+    --ink:#1C232B;
+    --muted:#6B7684;
+    --paper:#F1F3F5;
+    --panel:#FFFFFF;
+    --line:#D7DDE3;
+    --accent:#2C6E63;
+    --accent-soft:#E4EEEC;
+    --amber:#C97A2B;
+    --amber-soft:#F6E9DA;
+    --critical:#B4463A;
+    --critical-soft:#F5E2DF;
+    --low:#5B7BA6;
+    --low-soft:#E3EAF3;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; background:var(--paper); color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+  .wrap{ max-width: 920px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  .topbar{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .eyebrow{
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin: 0 0 4px;
+  }
+  h1{ font-size: 24px; margin:0; letter-spacing:-0.01em; }
+  .stats{ display:flex; gap:18px; }
+  .stat{ text-align:right; }
+  .stat .num{ font-size:22px; font-weight:700; font-family: ui-monospace, monospace; }
+  .stat .lbl{ font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+
+  .toolbar{
+    display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center;
+  }
+  input[type=text], select, textarea, input[type=date]{
+    font-family: inherit; font-size: 14px; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink);
+  }
+  .toolbar input[type=text]{ flex:1; min-width:160px; }
+  .btn{
+    font-family: inherit; font-size: 13.5px; font-weight:600; cursor:pointer;
+    border-radius:6px; padding: 9px 16px; border:1px solid transparent;
+  }
+  .btn-primary{ background: var(--accent); color:#fff; }
+  .btn-primary:hover{ background:#255a51; }
+  .btn-ghost{ background:transparent; border-color: var(--line); color: var(--ink); }
+  .btn-ghost:hover{ background:#fff; }
+  .btn-small{ font-size:12px; padding:5px 10px; }
+
+  .panel{
+    background: var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding: 20px; margin-bottom: 18px;
+  }
+  .panel h2{ font-size:15px; margin:0 0 14px; }
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+  .field{ display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+  .field label{ font-size:12px; font-weight:600; color: var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  textarea{ resize: vertical; min-height:64px; line-height:1.4; }
+  textarea.mono-area{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; }
+  .form-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:6px; }
+
+  .code-block{
+    background: #1C232B; color:#E4E8EC; border-radius:7px; padding:12px 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12.5px;
+    line-height:1.6; white-space: pre-wrap; word-break: break-word; position:relative;
+  }
+  .code-block-wrap{ position:relative; }
+  .code-copy-btn{
+    position:absolute; top:8px; right:8px; font-size:11px; padding:4px 9px;
+    background:#2C6E63; color:#fff; border:none; border-radius:5px; cursor:pointer;
+  }
+  .code-copy-btn:hover{ background:#255a51; }
+
+  .empty{
+    text-align:center; padding: 50px 20px; color: var(--muted);
+    border: 1.5px dashed var(--line); border-radius: 10px;
+  }
+  .empty b{ color: var(--ink); }
+
+  .case{
+    background: var(--panel); border:1px solid var(--line); border-left-width:4px;
+    border-radius: 8px; padding: 16px 18px; margin-bottom: 12px;
+    cursor:pointer;
+  }
+  .case.sev-Kritis{ border-left-color: var(--critical); }
+  .case.sev-Tinggi{ border-left-color: var(--amber); }
+  .case.sev-Sedang{ border-left-color: var(--low); }
+  .case.sev-Rendah{ border-left-color: var(--line); }
+
+  .case-head{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+  .case-id{ font-size:12px; color: var(--muted); }
+  .case-title{ font-size:15.5px; font-weight:700; margin: 2px 0 6px; }
+  .case-meta{ font-size:12px; color: var(--muted); display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;}
+  .tag{
+    display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:100px;
+  }
+  .tag.sev-Kritis{ background: var(--critical-soft); color: var(--critical); }
+  .tag.sev-Tinggi{ background: var(--amber-soft); color: var(--amber); }
+  .tag.sev-Sedang{ background: var(--low-soft); color: var(--low); }
+  .tag.sev-Rendah{ background: var(--paper); color: var(--muted); }
+  .tag.cat{ background: var(--accent-soft); color: var(--accent); }
+  .tag.status-Terbuka{ background: var(--low-soft); color: var(--low); }
+  .tag.status-Selesai{ background: var(--accent-soft); color: var(--accent); }
+
+  .comments{ margin-top: 6px; }
+  .comment-item{
+    background: var(--paper); border:1px solid var(--line); border-radius:7px;
+    padding: 8px 10px; margin-bottom: 8px;
+  }
+  .comment-item .c-meta{ font-size:10.5px; color: var(--muted); margin-bottom:3px; }
+  .comment-item .c-text{ font-size:13px; line-height:1.45; white-space: pre-wrap; }
+  .comment-add{ display:flex; gap:8px; margin-top:8px; align-items:flex-start; }
+  .comment-add textarea{ flex:1; min-height:40px; }
+  .no-comments{ font-size:12.5px; color: var(--muted); font-style: italic; margin-bottom:8px; }
+
+  .case-body{ display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+  .case.open .case-body{ display:block; }
+  .kv{ margin-bottom:10px; }
+  .kv .k{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--muted); margin-bottom:3px;}
+  .kv .v{ font-size:13.5px; line-height:1.5; white-space: pre-wrap; }
+  .case-actions{ display:flex; gap:8px; margin-top:12px; }
+
+  .foot-note{ font-size:12px; color: var(--muted); text-align:center; margin-top:26px; }
+  .hidden{ display:none !important; }
+  .loading{ text-align:center; padding:40px; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <p class="eyebrow">Log Operasional</p>
+      <h1>Case Log — Patch Management</h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div class="stats">
+        <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Total kasus</div></div>
+        <div class="stat"><div class="num mono" id="statOpen">0</div><div class="lbl">Masih terbuka</div></div>
+        <div class="stat"><div class="num mono" id="statMonth">0</div><div class="lbl">Bulan ini</div></div>
+      </div>
+      <button class="btn btn-ghost btn-small" id="btnSettings">Pengaturan</button>
+    </div>
+  </div>
+
+  <div id="settingsPanel" class="panel hidden">
+    <h2>Pengaturan Koneksi ke Backend</h2>
+    <div class="field">
+      <label>Worker Base URL</label>
+      <input type="text" id="cfgBase" placeholder="https://case-log-api.namamu.workers.dev">
+    </div>
+    <div class="field">
+      <label>API Token (samakan dengan secret API_TOKEN di Worker)</label>
+      <input type="text" id="cfgToken" placeholder="token rahasia kamu">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="btnSettingsCancel">Batal</button>
+      <button class="btn btn-primary" id="btnSettingsSave">Simpan &amp; Muat Ulang</button>
+    </div>
+  </div>
+
+  <div id="configNeeded" class="empty hidden">
+    Belum terhubung ke backend.<br>Klik <b>Pengaturan</b> di kanan atas dan isi Worker Base URL + Token dulu.
+  </div>
+
+  <div id="loadingMsg" class="loading">Memuat catatan tersimpan…</div>
+
+  <div id="appBody" class="hidden">
+
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Cari judul, sistem, atau tag...">
+      <select id="filterSev">
+        <option value="">Semua severity</option>
+        <option>Kritis</option><option>Tinggi</option><option>Sedang</option><option>Rendah</option>
+      </select>
+      <select id="filterStatus">
+        <option value="">Semua status</option>
+        <option>Terbuka</option><option>Selesai</option>
+      </select>
+      <button class="btn btn-primary" id="btnNew">+ Catat Kasus Baru</button>
+    </div>
+
+    <div id="formPanel" class="panel hidden">
+      <h2 id="formTitle">Kasus Baru</h2>
+      <div class="grid2">
+        <div class="field">
+          <label>Tanggal</label>
+          <input type="date" id="fDate">
+        </div>
+        <div class="field">
+          <label>Sistem / Aset Terdampak</label>
+          <input type="text" id="fSystem" placeholder="misal: Linux fleet - web-prod-03">
+        </div>
+      </div>
+      <div class="field">
+        <label>Judul Kasus</label>
+        <input type="text" id="fTitle" placeholder="misal: Patch kernel gagal boot di 4 server produksi">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Kategori</label>
+          <select id="fCategory">
+            <option>OS / Kernel Patch</option>
+            <option>Aplikasi / Third-party</option>
+            <option>Security Patch Kritikal</option>
+            <option>Konfigurasi Terkait Patch</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Severity</label>
+          <select id="fSeverity">
+            <option>Rendah</option><option>Sedang</option><option>Tinggi</option><option>Kritis</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Deskripsi Masalah</label>
+        <textarea id="fDesc" placeholder="Apa yang terjadi, gejala awal, dampak"></textarea>
+      </div>
+      <div class="field">
+        <label>Root Cause</label>
+        <textarea id="fRoot" placeholder="Penyebab sebenarnya setelah investigasi"></textarea>
+      </div>
+      <div class="field">
+        <label>Tindakan yang Diambil</label>
+        <textarea id="fAction" placeholder="Langkah remediasi / rollback / mitigasi"></textarea>
+      </div>
+      <div class="field">
+        <label>Command / CLI yang Dijalankan (opsional)</label>
+        <textarea id="fCli" class="mono-area" placeholder="dnf downgrade paket-x-1.2.3&#10;dnf clean all&#10;dnf makecache"></textarea>
+      </div>
+      <div class="field">
+        <label>Hasil</label>
+        <textarea id="fResult" placeholder="Apakah selesai, berapa lama, ada dampak susulan?"></textarea>
+      </div>
+      <div class="field">
+        <label>Pembelajaran &amp; Relevansi ke Cloud Security (opsional)</label>
+        <textarea id="fLesson" placeholder="Prinsip apa dari kasus ini yang berlaku juga di cloud (patching, least privilege, logging, dsb)"></textarea>
+      </div>
+      <div class="field">
+        <label>Tags (pisahkan dengan koma)</label>
+        <input type="text" id="fTags" placeholder="misal: kernel, rollback, produksi">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="btnCancel">Batal</button>
+        <button class="btn btn-primary" id="btnSave">Simpan Kasus</button>
+      </div>
+    </div>
+
+    <div id="listArea"></div>
+    <div id="emptyState" class="empty hidden">
+      Belum ada kasus tercatat.<br><b>Klik "Catat Kasus Baru"</b> untuk mulai membangun log kamu.
+    </div>
+  </div>
+
+  <p class="foot-note">Data disimpan di browser perangkat ini (localStorage) — tidak sinkron otomatis ke perangkat lain. Gunakan "Salin sebagai Markdown" pada tiap kasus untuk menjadikannya draf writeup portofolio, dan sesekali ekspor/backup manual.</p>
+</div>
+
+<script>
+const STORAGE_KEY = "pm-case-log";
+let cases = [];
+let editingId = null;
+
+const $ = (id) => document.getElementById(id);
+
+function todayISO(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function genId(){
+  const year = new Date().getFullYear();
+  const seq = (cases.length + 1).toString().padStart(3,"0");
+  let candidate = `PM-${year}-${seq}`;
+  let n = cases.length + 1;
+  while(cases.some(c => c.id === candidate)){
+    n++;
+    candidate = `PM-${year}-${n.toString().padStart(3,"0")}`;
+  }
+  return candidate;
+}
+
+const CFG_BASE_KEY = "cfg_apiBase";
+const CFG_TOKEN_KEY = "cfg_apiToken";
+
+function getConfig(){
+  return {
+    base: (localStorage.getItem(CFG_BASE_KEY) || "").replace(/\/$/, ""),
+    token: localStorage.getItem(CFG_TOKEN_KEY) || ""
+  };
+}
+
+function hasConfig(){
+  const cfg = getConfig();
+  return !!(cfg.base && cfg.token);
+}
+
+async function apiFetch(path, options = {}){
+  const cfg = getConfig();
+  if(!cfg.base || !cfg.token){
+    throw new Error("Belum dikonfigurasi. Klik tombol Pengaturan dulu.");
+  }
+  const res = await fetch(cfg.base + path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + cfg.token,
+      ...(options.headers || {})
+    }
+  });
+  if(!res.ok){
+    let msg = res.statusText;
+    try{ const body = await res.json(); if(body.error) msg = body.error; }catch(e){}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+async function loadCases(){
+  if(!hasConfig()){
+    cases = [];
+    return;
+  }
+  cases = await apiFetch("/api/cases");
+}
+
+function clearForm(){
+  ["fSystem","fTitle","fDesc","fRoot","fAction","fCli","fResult","fLesson","fTags"].forEach(id => $(id).value = "");
+  $("fDate").value = todayISO();
+  $("fCategory").selectedIndex = 0;
+  $("fSeverity").selectedIndex = 0;
+  editingId = null;
+  $("formTitle").textContent = "Kasus Baru";
+}
+
+function openForm(existing){
+  $("formPanel").classList.remove("hidden");
+  if(existing){
+    editingId = existing.id;
+    $("formTitle").textContent = "Edit Kasus " + existing.id;
+    $("fDate").value = existing.date;
+    $("fSystem").value = existing.system;
+    $("fTitle").value = existing.title;
+    $("fCategory").value = existing.category;
+    $("fSeverity").value = existing.severity;
+    $("fDesc").value = existing.desc;
+    $("fRoot").value = existing.root;
+    $("fAction").value = existing.action;
+    $("fCli").value = existing.cli || "";
+    $("fResult").value = existing.result;
+    $("fLesson").value = existing.lesson;
+    $("fTags").value = existing.tags.join(", ");
+  } else {
+    clearForm();
+  }
+  $("formPanel").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+function closeForm(){
+  $("formPanel").classList.add("hidden");
+  clearForm();
+}
+
+async function handleSave(){
+  const title = $("fTitle").value.trim();
+  if(!title){ alert("Judul kasus wajib diisi."); return; }
+  const tags = $("fTags").value.split(",").map(t=>t.trim()).filter(Boolean);
+
+  const payload = {
+    date: $("fDate").value || todayISO(),
+    system: $("fSystem").value.trim(),
+    title, category: $("fCategory").value, severity: $("fSeverity").value,
+    desc: $("fDesc").value.trim(), root: $("fRoot").value.trim(),
+    action: $("fAction").value.trim(), cli: $("fCli").value.trim(),
+    result: $("fResult").value.trim(), lesson: $("fLesson").value.trim(), tags
+  };
+
+  try{
+    if(editingId){
+      const existing = cases.find(c => c.id === editingId) || {};
+      payload.status = existing.status || "Terbuka";
+      payload.comments = existing.comments || [];
+      await apiFetch("/api/cases/" + encodeURIComponent(editingId), { method: "PUT", body: JSON.stringify(payload) });
+    } else {
+      payload.id = genId();
+      payload.status = "Terbuka";
+      payload.comments = [];
+      await apiFetch("/api/cases", { method: "POST", body: JSON.stringify(payload) });
+    }
+    await loadCases();
+    closeForm();
+    render();
+  }catch(e){
+    alert("Gagal menyimpan kasus: " + e.message);
+  }
+}
+
+async function handleDelete(id){
+  if(!confirm("Hapus kasus " + id + "? Tindakan ini tidak bisa dibatalkan.")) return;
+  try{
+    await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "DELETE" });
+    await loadCases();
+    render();
+  }catch(e){
+    alert("Gagal menghapus kasus: " + e.message);
+  }
+}
+
+async function addComment(id, text){
+  text = text.trim();
+  if(!text) return;
+  const c = cases.find(c => c.id === id);
+  if(!c) return;
+  const comments = (c.comments || []).concat([{ ts: new Date().toISOString(), text }]);
+  const payload = { ...c, comments };
+  try{
+    await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(payload) });
+    await loadCases();
+    render();
+    reopenCard(id);
+  }catch(e){
+    alert("Gagal menambah komentar: " + e.message);
+  }
+}
+
+async function toggleStatus(id){
+  const c = cases.find(c => c.id === id);
+  if(!c) return;
+  const newStatus = c.status === "Selesai" ? "Terbuka" : "Selesai";
+  let comments = c.comments || [];
+  if(newStatus === "Selesai"){
+    comments = comments.concat([{ ts: new Date().toISOString(), text: "— Kasus ditandai selesai —" }]);
+  }
+  const payload = { ...c, status: newStatus, comments };
+  try{
+    await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(payload) });
+    await loadCases();
+    render();
+    reopenCard(id);
+  }catch(e){
+    alert("Gagal mengubah status: " + e.message);
+  }
+}
+
+function reopenCard(id){
+  // keep the case expanded after re-render since re-render collapses everything
+  const el = document.querySelector(`[data-case-id="${id}"]`);
+  if(el) el.classList.add("open");
+}
+
+function toMarkdown(c){
+  const commentsBlock = (c.comments && c.comments.length)
+    ? c.comments.map(cm => `- [${new Date(cm.ts).toLocaleString("id-ID")}] ${cm.text}`).join("\n")
+    : "-";
+  return `## ${c.id} — ${c.title}
+
+**Tanggal:** ${c.date}  **Sistem:** ${c.system}  **Kategori:** ${c.category}  **Severity:** ${c.severity}  **Status:** ${c.status || "Terbuka"}
+
+**Deskripsi Masalah**
+${c.desc || "-"}
+
+**Root Cause**
+${c.root || "-"}
+
+**Tindakan**
+${c.action || "-"}
+${c.cli ? "\n**Command / CLI**\n```\n" + c.cli + "\n```\n" : ""}
+**Hasil**
+${c.result || "-"}
+
+**Pembelajaran / Relevansi Cloud Security**
+${c.lesson || "-"}
+
+**Riwayat Komentar / Progres**
+${commentsBlock}
+
+**Tags:** ${c.tags.join(", ") || "-"}
+`;
+}
+
+function copyMarkdown(c){
+  const md = toMarkdown(c);
+  navigator.clipboard.writeText(md).then(()=>{
+    alert("Markdown kasus " + c.id + " disalin ke clipboard.");
+  }).catch(()=>{
+    prompt("Salin manual teks di bawah ini:", md);
+  });
+}
+
+function render(){
+  const q = $("searchBox").value.toLowerCase();
+  const sevFilter = $("filterSev").value;
+  const statusFilter = $("filterStatus").value;
+
+  const filtered = cases.filter(c => {
+    const matchesQ = !q || [c.title, c.system, c.tags.join(" ")].join(" ").toLowerCase().includes(q);
+    const matchesSev = !sevFilter || c.severity === sevFilter;
+    const matchesStatus = !statusFilter || (c.status || "Terbuka") === statusFilter;
+    return matchesQ && matchesSev && matchesStatus;
+  });
+
+  $("statTotal").textContent = cases.length;
+  $("statOpen").textContent = cases.filter(c => (c.status || "Terbuka") === "Terbuka").length;
+  const thisMonth = new Date().toISOString().slice(0,7);
+  $("statMonth").textContent = cases.filter(c => c.date && c.date.slice(0,7) === thisMonth).length;
+
+  const listArea = $("listArea");
+  listArea.innerHTML = "";
+
+  if(cases.length === 0){
+    $("emptyState").classList.remove("hidden");
+    return;
+  }
+  $("emptyState").classList.add("hidden");
+
+  filtered.forEach(c => {
+    const status = c.status || "Terbuka";
+    const comments = c.comments || [];
+    const div = document.createElement("div");
+    div.className = "case sev-" + c.severity;
+    div.setAttribute("data-case-id", c.id);
+    const commentsHtml = comments.length
+      ? comments.map(cm => `
+          <div class="comment-item">
+            <div class="c-meta">${new Date(cm.ts).toLocaleString("id-ID")}</div>
+            <div class="c-text">${escapeHtml(cm.text)}</div>
+          </div>`).join("")
+      : `<div class="no-comments">Belum ada komentar / update progres.</div>`;
+
+    div.innerHTML = `
+      <div class="case-head">
+        <div>
+          <div class="case-id mono">${c.id} &middot; ${c.date}</div>
+          <div class="case-title">${escapeHtml(c.title)}</div>
+          <div class="case-meta">
+            <span class="tag sev-${c.severity}">${c.severity}</span>
+            <span class="tag status-${status}">${status}</span>
+            <span class="tag cat">${escapeHtml(c.category)}</span>
+            <span>${escapeHtml(c.system || "")}</span>
+          </div>
+        </div>
+      </div>
+      <div class="case-body">
+        <div class="kv"><div class="k">Deskripsi Masalah</div><div class="v">${escapeHtml(c.desc || "-")}</div></div>
+        <div class="kv"><div class="k">Root Cause</div><div class="v">${escapeHtml(c.root || "-")}</div></div>
+        <div class="kv"><div class="k">Tindakan</div><div class="v">${escapeHtml(c.action || "-")}</div></div>
+        ${c.cli ? `<div class="kv"><div class="k">Command / CLI</div>
+          <div class="code-block-wrap">
+            <button class="code-copy-btn" data-action="copy-cli">Salin</button>
+            <div class="code-block">${escapeHtml(c.cli)}</div>
+          </div></div>` : ""}
+        <div class="kv"><div class="k">Hasil</div><div class="v">${escapeHtml(c.result || "-")}</div></div>
+        ${c.lesson ? `<div class="kv"><div class="k">Pembelajaran / Relevansi Cloud Security</div><div class="v">${escapeHtml(c.lesson)}</div></div>` : ""}
+        ${c.tags.length ? `<div class="kv"><div class="k">Tags</div><div class="v">${c.tags.map(t=>`<span class="tag cat" style="margin-right:4px;">${escapeHtml(t)}</span>`).join("")}</div></div>` : ""}
+        <div class="kv">
+          <div class="k">Komentar / Update Progres</div>
+          <div class="comments">${commentsHtml}</div>
+          <div class="comment-add">
+            <textarea placeholder="Tulis update progres di sini..." data-role="comment-input"></textarea>
+            <button class="btn btn-ghost btn-small" data-action="add-comment">Kirim</button>
+          </div>
+        </div>
+        <div class="case-actions">
+          <button class="btn btn-ghost btn-small" data-action="edit">Edit</button>
+          <button class="btn btn-ghost btn-small" data-action="toggle-status">${status === "Selesai" ? "Buka Kembali" : "Tandai Selesai"}</button>
+          <button class="btn btn-ghost btn-small" data-action="copy">Salin sebagai Markdown</button>
+          <button class="btn btn-ghost btn-small" data-action="delete">Hapus</button>
+        </div>
+      </div>
+    `;
+    div.addEventListener("click", (e) => {
+      if(e.target.closest("[data-action]") || e.target.closest("textarea")) return;
+      div.classList.toggle("open");
+    });
+    div.querySelector('[data-action="edit"]').addEventListener("click", (e)=>{ e.stopPropagation(); openForm(c); });
+    div.querySelector('[data-action="copy"]').addEventListener("click", (e)=>{ e.stopPropagation(); copyMarkdown(c); });
+    const cliBtn = div.querySelector('[data-action="copy-cli"]');
+    if(cliBtn){
+      cliBtn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        navigator.clipboard.writeText(c.cli).then(()=>{
+          cliBtn.textContent = "Tersalin!";
+          setTimeout(()=> cliBtn.textContent = "Salin", 1500);
+        }).catch(()=> prompt("Salin manual:", c.cli));
+      });
+    }
+    div.querySelector('[data-action="delete"]').addEventListener("click", (e)=>{ e.stopPropagation(); handleDelete(c.id); });
+    div.querySelector('[data-action="toggle-status"]').addEventListener("click", (e)=>{ e.stopPropagation(); toggleStatus(c.id); });
+    div.querySelector('[data-action="add-comment"]').addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const ta = div.querySelector('[data-role="comment-input"]');
+      addComment(c.id, ta.value);
+      ta.value = "";
+    });
+    listArea.appendChild(div);
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+$("btnNew").addEventListener("click", ()=> openForm(null));
+$("btnCancel").addEventListener("click", closeForm);
+$("btnSave").addEventListener("click", handleSave);
+$("searchBox").addEventListener("input", render);
+$("filterSev").addEventListener("change", render);
+$("filterStatus").addEventListener("change", render);
+
+$("btnSettings").addEventListener("click", () => {
+  const cfg = getConfig();
+  $("cfgBase").value = cfg.base;
+  $("cfgToken").value = cfg.token;
+  $("settingsPanel").classList.remove("hidden");
+  $("settingsPanel").scrollIntoView({behavior:"smooth", block:"center"});
+});
+$("btnSettingsCancel").addEventListener("click", () => {
+  $("settingsPanel").classList.add("hidden");
+});
+$("btnSettingsSave").addEventListener("click", async () => {
+  const base = $("cfgBase").value.trim();
+  const token = $("cfgToken").value.trim();
+  if(!base || !token){ alert("Isi Worker Base URL dan Token dulu."); return; }
+  localStorage.setItem(CFG_BASE_KEY, base.replace(/\/$/, ""));
+  localStorage.setItem(CFG_TOKEN_KEY, token);
+  $("settingsPanel").classList.add("hidden");
+  await refreshApp();
+});
+
+async function refreshApp(){
+  $("configNeeded").classList.add("hidden");
+  if(!hasConfig()){
+    $("configNeeded").classList.remove("hidden");
+    cases = [];
+    render();
+    return;
+  }
+  try{
+    await loadCases();
+    render();
+  }catch(e){
+    $("configNeeded").classList.remove("hidden");
+    $("configNeeded").innerHTML = "Gagal terhubung ke backend: " + escapeHtml(e.message) +
+      "<br>Cek lagi Worker URL dan Token di Pengaturan.";
+  }
+}
+
+(async function init(){
+  $("loadingMsg").classList.add("hidden");
+  $("appBody").classList.remove("hidden");
+  clearForm();
+  if(!hasConfig()){
+    $("btnSettings").click();
+  }
+  await refreshApp();
+})();
+</script>
+</body>
+</html>
