@@ -1,568 +1,1027 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Case Log — Patch Management</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg-dark: #090a0f;
-    --surface: rgba(20, 22, 31, 0.65);
-    --surface-hover: rgba(30, 33, 46, 0.85);
-    --surface-border: rgba(255, 255, 255, 0.08);
-    --ink: #e2e8f0;
-    --muted: #94a3b8;
-    --accent: #6366f1;
-    --accent-hover: #818cf8;
-    --accent-soft: rgba(99, 102, 241, 0.15);
-    
-    --critical: #f43f5e;
-    --critical-soft: rgba(244, 63, 94, 0.15);
-    --amber: #f59e0b;
-    --amber-soft: rgba(245, 158, 11, 0.15);
-    --low: #10b981;
-    --low-soft: rgba(16, 185, 129, 0.15);
-    --rendah: #64748b;
-    --rendah-soft: rgba(100, 116, 139, 0.15);
-    
-    --glass-blur: blur(16px);
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Log — Patch Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090a0f;
+      --surface: rgba(20, 22, 31, 0.65);
+      --surface-hover: rgba(30, 33, 46, 0.85);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --ink: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --accent-soft: rgba(99, 102, 241, 0.15);
 
-  * { box-sizing: border-box; }
-  
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--bg-dark);
-    background-image: 
-      radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
-      radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
-    background-attachment: fixed;
-    color: var(--ink);
-    font-family: 'Outfit', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
-  }
-  
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      --critical: #f43f5e;
+      --critical-soft: rgba(244, 63, 94, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --low: #10b981;
+      --low-soft: rgba(16, 185, 129, 0.15);
+      --rendah: #64748b;
+      --rendah-soft: rgba(100, 116, 139, 0.15);
 
-  .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+      --glass-blur: blur(16px);
+    }
 
-  /* Typography */
-  h1 { font-size: 32px; font-weight: 700; margin: 0; letter-spacing: -0.02em; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  h2 { font-size: 18px; font-weight: 600; margin: 0 0 20px; color: #fff; }
-  
-  .topbar {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    border-bottom: 1px solid var(--surface-border); padding-bottom: 24px; margin-bottom: 32px;
-    flex-wrap: wrap; gap: 16px;
-  }
-  
-  .eyebrow {
-    font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
-    color: var(--accent); font-weight: 700; margin: 0 0 8px;
-  }
-  
-  .stats { display: flex; gap: 24px; }
-  .stat { text-align: right; background: var(--surface); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--surface-border); backdrop-filter: var(--glass-blur); }
-  .stat .num { font-size: 28px; font-weight: 700; color: #fff; line-height: 1.1; margin-bottom: 4px; }
-  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-weight: 500; }
+    * {
+      box-sizing: border-box;
+    }
 
-  /* Toolbar */
-  .toolbar {
-    display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center;
-    background: var(--surface); padding: 16px; border-radius: 12px; border: 1px solid var(--surface-border);
-    backdrop-filter: var(--glass-blur);
-  }
-  
-  /* Inputs & Forms */
-  input[type=text], select, textarea, input[type=date] {
-    font-family: inherit; font-size: 14px; padding: 10px 14px;
-    border: 1px solid var(--surface-border); border-radius: 8px; 
-    background: rgba(0,0,0,0.2); color: var(--ink);
-    transition: all 0.2s ease; outline: none;
-  }
-  input[type=text]:focus, select:focus, textarea:focus, input[type=date]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
-  }
-  
-  .toolbar input[type=text] { flex: 1; min-width: 200px; }
-  
-  /* Buttons */
-  .btn {
-    font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
-    border-radius: 8px; padding: 10px 20px; border: 1px solid transparent;
-    transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center;
-  }
-  .btn-primary { 
-    background: linear-gradient(135deg, var(--accent), #4f46e5); 
-    color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-  }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
-  .btn-primary:active { transform: translateY(0); }
-  
-  .btn-ghost { background: rgba(255,255,255,0.05); border-color: var(--surface-border); color: var(--ink); }
-  .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-  .btn-small { font-size: 13px; padding: 6px 12px; border-radius: 6px; }
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-dark);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+      background-attachment: fixed;
+      color: var(--ink);
+      font-family: 'Outfit', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
 
-  /* Panel (Forms / Settings) */
-  .panel {
-    background: var(--surface); border: 1px solid var(--surface-border); border-radius: 16px;
-    padding: 32px; margin-bottom: 24px; backdrop-filter: var(--glass-blur);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
-    animation: fadeIn 0.3s ease-out;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
 
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-  .field label { font-size: 13px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  
-  textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-  textarea.mono-area { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
-  
-  .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; padding-top: 24px; border-top: 1px solid var(--surface-border); }
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
 
-  /* Code Blocks */
-  .code-block {
-    background: rgba(0,0,0,0.4); border: 1px solid var(--surface-border);
-    color: #a5b4fc; border-radius: 8px; padding: 16px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px;
-    line-height: 1.6; white-space: pre-wrap; word-break: break-word; position: relative;
-  }
-  .code-block-wrap { position: relative; margin-top: 6px; }
-  .code-copy-btn {
-    position: absolute; top: 12px; right: 12px; font-size: 12px; padding: 4px 10px; font-weight: 500;
-    background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); 
-    border-radius: 6px; cursor: pointer; transition: all 0.2s ease;
-  }
-  .code-copy-btn:hover { background: rgba(255,255,255,0.2); }
+    /* Typography */
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-  /* Empty State */
-  .empty {
-    text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px;
-    background: var(--surface); border: 1px dashed rgba(255,255,255,0.2); border-radius: 16px;
-    backdrop-filter: var(--glass-blur);
-  }
-  .empty b { color: #fff; font-weight: 600; }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 20px;
+      color: #fff;
+    }
 
-  /* Case Card */
-  .case {
-    background: var(--surface); border: 1px solid var(--surface-border); 
-    border-left-width: 4px; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px;
-    cursor: pointer; transition: all 0.2s ease; backdrop-filter: var(--glass-blur);
-    position: relative; overflow: hidden;
-  }
-  .case:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-  
-  .case.sev-Kritis { border-left-color: var(--critical); }
-  .case.sev-Tinggi { border-left-color: var(--amber); }
-  .case.sev-Sedang { border-left-color: var(--low); }
-  .case.sev-Rendah { border-left-color: var(--rendah); }
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
 
-  .case-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
-  .case-id { font-size: 13px; color: var(--muted); font-weight: 500; }
-  .case-title { font-size: 18px; font-weight: 600; margin: 4px 0 10px; color: #fff; }
-  
-  .case-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
-  .tag {
-    display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; 
-    padding: 4px 10px; border-radius: 100px; letter-spacing: 0.02em;
-  }
-  .tag.sev-Kritis { background: var(--critical-soft); color: var(--critical); border: 1px solid rgba(244, 63, 94, 0.2); }
-  .tag.sev-Tinggi { background: var(--amber-soft); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.2); }
-  .tag.sev-Sedang { background: var(--low-soft); color: var(--low); border: 1px solid rgba(16, 185, 129, 0.2); }
-  .tag.sev-Rendah { background: var(--rendah-soft); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); }
-  
-  .tag.cat { background: var(--accent-soft); color: var(--accent-hover); border: 1px solid rgba(99, 102, 241, 0.2); }
-  .tag.status-Terbuka { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.2); }
-  .tag.status-Selesai { background: var(--low-soft); color: var(--low); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
 
-  .system-label { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; }
-  .system-label::before { content: "•"; margin-right: 6px; color: var(--surface-border); }
+    .stats {
+      display: flex;
+      gap: 24px;
+    }
 
-  /* Case Body (Expanded) */
-  .case-body { 
-    display: none; margin-top: 20px; padding-top: 20px; 
-    border-top: 1px solid var(--surface-border); animation: slideDown 0.3s ease-out;
-  }
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .case.open .case-body { display: block; }
-  
-  .kv { margin-bottom: 20px; }
-  .kv .k { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-hover); margin-bottom: 6px; }
-  .kv .v { font-size: 14.5px; line-height: 1.6; white-space: pre-wrap; color: var(--ink); }
+    .stat {
+      text-align: right;
+      background: var(--surface);
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-border);
+      backdrop-filter: var(--glass-blur);
+    }
 
-  /* Comments */
-  .comments { margin-top: 12px; }
-  .comment-item {
-    background: rgba(0,0,0,0.2); border: 1px solid var(--surface-border); border-radius: 8px;
-    padding: 12px 14px; margin-bottom: 10px;
-  }
-  .comment-item .c-meta { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-  .comment-item .c-text { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
-  
-  .comment-add { display: flex; gap: 10px; margin-top: 12px; align-items: flex-start; }
-  .comment-add textarea { flex: 1; min-height: 44px; padding: 10px 12px; }
-  .no-comments { font-size: 13px; color: var(--muted); font-style: italic; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 8px; }
+    .stat .num {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
 
-  .case-actions { display: flex; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--surface-border); flex-wrap: wrap; }
+    .stat .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-weight: 500;
+    }
 
-  .foot-note { font-size: 13px; color: var(--muted); text-align: center; margin-top: 40px; line-height: 1.6; padding-top: 20px; border-top: 1px solid var(--surface-border); }
-  .hidden { display: none !important; }
-  
-  .loading { text-align: center; padding: 60px; color: var(--accent-hover); font-size: 15px; font-weight: 500; }
-  .loading::after { content: "..."; animation: dots 1.5s steps(4, end) infinite; }
-  @keyframes dots { 0%, 20% { color: transparent; text-shadow: 0.25em 0 0 transparent, 0.5em 0 0 transparent;} 40% { color: var(--accent-hover); text-shadow: 0.25em 0 0 transparent, 0.5em 0 0 transparent;} 60% { text-shadow: 0.25em 0 0 var(--accent-hover), 0.5em 0 0 transparent;} 80%, 100% { text-shadow: 0.25em 0 0 var(--accent-hover), 0.5em 0 0 var(--accent-hover);} }
-  
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: var(--bg-dark); }
-  ::-webkit-scrollbar-thumb { background: var(--surface-border); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-</style>
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: var(--surface);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-border);
+      backdrop-filter: var(--glass-blur);
+    }
+
+    /* Inputs & Forms */
+    input[type=text],
+    select,
+    textarea,
+    input[type=date] {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 14px;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--ink);
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input[type=text]:focus,
+    select:focus,
+    textarea:focus,
+    input[type=date]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .toolbar input[type=text] {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 10px 20px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--surface-border);
+      color: var(--ink);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-small {
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    /* Panel (Forms / Settings) */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    textarea.mono-area {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--surface-border);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--surface-border);
+      color: #a5b4fc;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      position: relative;
+    }
+
+    .code-block-wrap {
+      position: relative;
+      margin-top: 6px;
+    }
+
+    .code-copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 12px;
+      padding: 4px 10px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .code-copy-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Empty State */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 15px;
+      background: var(--surface);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .empty b {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Case Card */
+    .case {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-left-width: 4px;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: var(--glass-blur);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .case:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .case.sev-Kritis {
+      border-left-color: var(--critical);
+    }
+
+    .case.sev-Tinggi {
+      border-left-color: var(--amber);
+    }
+
+    .case.sev-Sedang {
+      border-left-color: var(--low);
+    }
+
+    .case.sev-Rendah {
+      border-left-color: var(--rendah);
+    }
+
+    .case-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .case-id {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .case-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 4px 0 10px;
+      color: #fff;
+    }
+
+    .case-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.02em;
+    }
+
+    .tag.sev-Kritis {
+      background: var(--critical-soft);
+      color: var(--critical);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+    }
+
+    .tag.sev-Tinggi {
+      background: var(--amber-soft);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .tag.sev-Sedang {
+      background: var(--low-soft);
+      color: var(--low);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .tag.sev-Rendah {
+      background: var(--rendah-soft);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .tag.cat {
+      background: var(--accent-soft);
+      color: var(--accent-hover);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .tag.status-Terbuka {
+      background: rgba(234, 179, 8, 0.15);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.2);
+    }
+
+    .tag.status-Selesai {
+      background: var(--low-soft);
+      color: var(--low);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .system-label {
+      font-size: 13px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .system-label::before {
+      content: "•";
+      margin-right: 6px;
+      color: var(--surface-border);
+    }
+
+    /* Case Body (Expanded) */
+    .case-body {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--surface-border);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .case.open .case-body {
+      display: block;
+    }
+
+    .kv {
+      margin-bottom: 20px;
+    }
+
+    .kv .k {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent-hover);
+      margin-bottom: 6px;
+    }
+
+    .kv .v {
+      font-size: 14.5px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      color: var(--ink);
+    }
+
+    /* Comments */
+    .comments {
+      margin-top: 12px;
+    }
+
+    .comment-item {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .comment-item .c-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .comment-item .c-text {
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .comment-add {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      align-items: flex-start;
+    }
+
+    .comment-add textarea {
+      flex: 1;
+      min-height: 44px;
+      padding: 10px 12px;
+    }
+
+    .no-comments {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 12px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    .case-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--surface-border);
+      flex-wrap: wrap;
+    }
+
+    .foot-note {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 40px;
+      line-height: 1.6;
+      padding-top: 20px;
+      border-top: 1px solid var(--surface-border);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--accent-hover);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .loading::after {
+      content: "...";
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        color: transparent;
+        text-shadow: 0.25em 0 0 transparent, 0.5em 0 0 transparent;
+      }
+
+      40% {
+        color: var(--accent-hover);
+        text-shadow: 0.25em 0 0 transparent, 0.5em 0 0 transparent;
+      }
+
+      60% {
+        text-shadow: 0.25em 0 0 var(--accent-hover), 0.5em 0 0 transparent;
+      }
+
+      80%,
+      100% {
+        text-shadow: 0.25em 0 0 var(--accent-hover), 0.5em 0 0 var(--accent-hover);
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--surface-border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrap">
+  <div class="wrap">
 
-  <div class="topbar">
-    <div>
-      <p class="eyebrow">Log Operasional</p>
-      <h1>Case Log — Patch Management</h1>
-    </div>
-    <div style="display:flex; align-items:center; gap:16px;">
-      <div class="stats">
-        <div class="stat"><div class="num mono" id="statTotal">0</div><div class="lbl">Total Kasus</div></div>
-        <div class="stat"><div class="num mono" id="statOpen">0</div><div class="lbl">Terbuka</div></div>
-        <div class="stat"><div class="num mono" id="statMonth">0</div><div class="lbl">Bulan Ini</div></div>
+    <div class="topbar">
+      <div>
+        <p class="eyebrow">Log Operasional</p>
+        <h1>Case Log — Patch Management</h1>
       </div>
-      <button class="btn btn-ghost" id="btnSettings">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        Pengaturan
-      </button>
-    </div>
-  </div>
-
-  <div id="settingsPanel" class="panel hidden">
-    <h2>Pengaturan Koneksi ke Backend</h2>
-    <div class="field">
-      <label>Worker Base URL</label>
-      <input type="text" id="cfgBase" placeholder="https://case-log-api.namamu.workers.dev">
-    </div>
-    <div class="field">
-      <label>API Token (samakan dengan secret API_TOKEN di Worker)</label>
-      <input type="text" id="cfgToken" placeholder="token rahasia kamu">
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-ghost" id="btnSettingsCancel">Batal</button>
-      <button class="btn btn-primary" id="btnSettingsSave">Simpan &amp; Muat Ulang</button>
-    </div>
-  </div>
-
-  <div id="configNeeded" class="empty hidden">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px; opacity:0.5;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><br>
-    Belum terhubung ke backend.<br>Klik <b>Pengaturan</b> di kanan atas dan isi Worker Base URL + Token dulu.
-  </div>
-
-  <div id="loadingMsg" class="loading">Memuat catatan tersimpan</div>
-
-  <div id="appBody" class="hidden">
-
-    <div class="toolbar">
-      <input type="text" id="searchBox" placeholder="Cari judul, sistem, atau tag...">
-      <select id="filterSev">
-        <option value="">Semua Severity</option>
-        <option>Kritis</option><option>Tinggi</option><option>Sedang</option><option>Rendah</option>
-      </select>
-      <select id="filterStatus">
-        <option value="">Semua Status</option>
-        <option>Terbuka</option><option>Selesai</option>
-      </select>
-      <button class="btn btn-primary" id="btnNew" style="margin-left:auto;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Catat Kasus Baru
-      </button>
-    </div>
-
-    <div id="formPanel" class="panel hidden">
-      <h2 id="formTitle">Kasus Baru</h2>
-      <div class="grid2">
-        <div class="field">
-          <label>Tanggal</label>
-          <input type="date" id="fDate">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div class="stats">
+          <div class="stat">
+            <div class="num mono" id="statTotal">0</div>
+            <div class="lbl">Total Kasus</div>
+          </div>
+          <div class="stat">
+            <div class="num mono" id="statOpen">0</div>
+            <div class="lbl">Terbuka</div>
+          </div>
+          <div class="stat">
+            <div class="num mono" id="statMonth">0</div>
+            <div class="lbl">Bulan Ini</div>
+          </div>
         </div>
-        <div class="field">
-          <label>Sistem / Aset Terdampak</label>
-          <input type="text" id="fSystem" placeholder="misal: Linux fleet - web-prod-03">
-        </div>
+        <button class="btn btn-ghost" id="btnSettings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+          Pengaturan
+        </button>
+      </div>
+    </div>
+
+    <div id="settingsPanel" class="panel hidden">
+      <h2>Pengaturan Koneksi ke Backend</h2>
+      <div class="field">
+        <label>Worker Base URL</label>
+        <input type="text" id="cfgBase" placeholder="https://case-log-api.namamu.workers.dev">
       </div>
       <div class="field">
-        <label>Judul Kasus</label>
-        <input type="text" id="fTitle" placeholder="misal: Patch kernel gagal boot di 4 server produksi">
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label>Kategori</label>
-          <select id="fCategory">
-            <option>OS / Kernel Patch</option>
-            <option>Aplikasi / Third-party</option>
-            <option>Security Patch Kritikal</option>
-            <option>Konfigurasi Terkait Patch</option>
-            <option>Lainnya</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Severity</label>
-          <select id="fSeverity">
-            <option>Rendah</option><option>Sedang</option><option>Tinggi</option><option>Kritis</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>Deskripsi Masalah</label>
-        <textarea id="fDesc" placeholder="Apa yang terjadi, gejala awal, dampak"></textarea>
-      </div>
-      <div class="field">
-        <label>Root Cause</label>
-        <textarea id="fRoot" placeholder="Penyebab sebenarnya setelah investigasi"></textarea>
-      </div>
-      <div class="field">
-        <label>Tindakan yang Diambil</label>
-        <textarea id="fAction" placeholder="Langkah remediasi / rollback / mitigasi"></textarea>
-      </div>
-      <div class="field">
-        <label>Command / CLI yang Dijalankan (opsional)</label>
-        <textarea id="fCli" class="mono-area" placeholder="dnf downgrade paket-x-1.2.3&#10;dnf clean all&#10;dnf makecache"></textarea>
-      </div>
-      <div class="field">
-        <label>Hasil</label>
-        <textarea id="fResult" placeholder="Apakah selesai, berapa lama, ada dampak susulan?"></textarea>
-      </div>
-      <div class="field">
-        <label>Pembelajaran &amp; Relevansi ke Cloud Security (opsional)</label>
-        <textarea id="fLesson" placeholder="Prinsip apa dari kasus ini yang berlaku juga di cloud (patching, least privilege, logging, dsb)"></textarea>
-      </div>
-      <div class="field">
-        <label>Tags (pisahkan dengan koma)</label>
-        <input type="text" id="fTags" placeholder="misal: kernel, rollback, produksi">
+        <label>API Token (samakan dengan secret API_TOKEN di Worker)</label>
+        <input type="text" id="cfgToken" placeholder="token rahasia kamu">
       </div>
       <div class="form-actions">
-        <button class="btn btn-ghost" id="btnCancel">Batal</button>
-        <button class="btn btn-primary" id="btnSave">Simpan Kasus</button>
+        <button class="btn btn-ghost" id="btnSettingsCancel">Batal</button>
+        <button class="btn btn-primary" id="btnSettingsSave">Simpan &amp; Muat Ulang</button>
       </div>
     </div>
 
-    <div id="listArea"></div>
-    <div id="emptyState" class="empty hidden">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px; opacity:0.5;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><br>
-      Belum ada kasus tercatat.<br><b>Klik "Catat Kasus Baru"</b> untuk mulai membangun log kamu.
+    <div id="configNeeded" class="empty hidden">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px; opacity:0.5;">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg><br>
+      Belum terhubung ke backend.<br>Klik <b>Pengaturan</b> di kanan atas dan isi Worker Base URL + Token dulu.
     </div>
+
+    <div id="loadingMsg" class="loading">Memuat catatan tersimpan</div>
+
+    <div id="appBody" class="hidden">
+
+      <div class="toolbar">
+        <input type="text" id="searchBox" placeholder="Cari judul, sistem, atau tag...">
+        <select id="filterSev">
+          <option value="">Semua Severity</option>
+          <option>Kritis</option>
+          <option>Tinggi</option>
+          <option>Sedang</option>
+          <option>Rendah</option>
+        </select>
+        <select id="filterStatus">
+          <option value="">Semua Status</option>
+          <option>Terbuka</option>
+          <option>Selesai</option>
+        </select>
+        <button class="btn btn-primary" id="btnNew" style="margin-left:auto;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Catat Kasus Baru
+        </button>
+      </div>
+
+      <div id="formPanel" class="panel hidden">
+        <h2 id="formTitle">Kasus Baru</h2>
+        <div class="grid2">
+          <div class="field">
+            <label>Tanggal</label>
+            <input type="date" id="fDate">
+          </div>
+          <div class="field">
+            <label>Sistem / Aset Terdampak</label>
+            <input type="text" id="fSystem" placeholder="misal: Linux fleet - web-prod-03">
+          </div>
+        </div>
+        <div class="field">
+          <label>Judul Kasus</label>
+          <input type="text" id="fTitle" placeholder="misal: Patch kernel gagal boot di 4 server produksi">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Kategori</label>
+            <select id="fCategory">
+              <option>OS / Kernel Patch</option>
+              <option>Aplikasi / Third-party</option>
+              <option>Security Patch Kritikal</option>
+              <option>Konfigurasi Terkait Patch</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Severity</label>
+            <select id="fSeverity">
+              <option>Rendah</option>
+              <option>Sedang</option>
+              <option>Tinggi</option>
+              <option>Kritis</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Deskripsi Masalah</label>
+          <textarea id="fDesc" placeholder="Apa yang terjadi, gejala awal, dampak"></textarea>
+        </div>
+        <div class="field">
+          <label>Root Cause</label>
+          <textarea id="fRoot" placeholder="Penyebab sebenarnya setelah investigasi"></textarea>
+        </div>
+        <div class="field">
+          <label>Tindakan yang Diambil</label>
+          <textarea id="fAction" placeholder="Langkah remediasi / rollback / mitigasi"></textarea>
+        </div>
+        <div class="field">
+          <label>Command / CLI yang Dijalankan (opsional)</label>
+          <textarea id="fCli" class="mono-area"
+            placeholder="dnf downgrade paket-x-1.2.3&#10;dnf clean all&#10;dnf makecache"></textarea>
+        </div>
+        <div class="field">
+          <label>Hasil</label>
+          <textarea id="fResult" placeholder="Apakah selesai, berapa lama, ada dampak susulan?"></textarea>
+        </div>
+        <div class="field">
+          <label>Pembelajaran &amp; Relevansi ke Cloud Security (opsional)</label>
+          <textarea id="fLesson"
+            placeholder="Prinsip apa dari kasus ini yang berlaku juga di cloud (patching, least privilege, logging, dsb)"></textarea>
+        </div>
+        <div class="field">
+          <label>Tags (pisahkan dengan koma)</label>
+          <input type="text" id="fTags" placeholder="misal: kernel, rollback, produksi">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" id="btnCancel">Batal</button>
+          <button class="btn btn-primary" id="btnSave">Simpan Kasus</button>
+        </div>
+      </div>
+
+      <div id="listArea"></div>
+      <div id="emptyState" class="empty hidden">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+          stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px; opacity:0.5;">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg><br>
+        Belum ada kasus tercatat.<br><b>Klik "Catat Kasus Baru"</b> untuk mulai membangun log kamu.
+      </div>
+    </div>
+
+    <p class="foot-note">Data disimpan di browser perangkat ini (localStorage) jika tidak ada API — tidak sinkron
+      otomatis ke perangkat lain tanpa Worker URL.<br>Gunakan "Salin sebagai Markdown" pada tiap kasus untuk
+      menjadikannya draf writeup portofolio.</p>
   </div>
 
-  <p class="foot-note">Data disimpan di browser perangkat ini (localStorage) jika tidak ada API — tidak sinkron otomatis ke perangkat lain tanpa Worker URL.<br>Gunakan "Salin sebagai Markdown" pada tiap kasus untuk menjadikannya draf writeup portofolio.</p>
-</div>
+  <script>
+    const STORAGE_KEY = "pm-case-log";
+    let cases = [];
+    let editingId = null;
 
-<script>
-const STORAGE_KEY = "pm-case-log";
-let cases = [];
-let editingId = null;
+    const $ = (id) => document.getElementById(id);
 
-const $ = (id) => document.getElementById(id);
-
-function todayISO(){
-  const d = new Date();
-  return d.toISOString().slice(0,10);
-}
-
-function genId(){
-  const year = new Date().getFullYear();
-  const seq = (cases.length + 1).toString().padStart(3,"0");
-  let candidate = `PM-${year}-${seq}`;
-  let n = cases.length + 1;
-  while(cases.some(c => c.id === candidate)){
-    n++;
-    candidate = `PM-${year}-${n.toString().padStart(3,"0")}`;
-  }
-  return candidate;
-}
-
-const CFG_BASE_KEY = "cfg_apiBase";
-const CFG_TOKEN_KEY = "cfg_apiToken";
-
-function getConfig(){
-  return {
-    base: (localStorage.getItem(CFG_BASE_KEY) || "").replace(/\/$/, ""),
-    token: localStorage.getItem(CFG_TOKEN_KEY) || ""
-  };
-}
-
-function hasConfig(){
-  const cfg = getConfig();
-  return !!(cfg.base && cfg.token);
-}
-
-async function apiFetch(path, options = {}){
-  const cfg = getConfig();
-  if(!cfg.base || !cfg.token){
-    throw new Error("Belum dikonfigurasi. Klik tombol Pengaturan dulu.");
-  }
-  const res = await fetch(cfg.base + path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + cfg.token,
-      ...(options.headers || {})
+    function todayISO() {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
     }
-  });
-  if(!res.ok){
-    let msg = res.statusText;
-    try{ const body = await res.json(); if(body.error) msg = body.error; }catch(e){}
-    throw new Error(msg);
-  }
-  return res.json();
-}
 
-async function loadCases(){
-  if(!hasConfig()){
-    cases = [];
-    return;
-  }
-  cases = await apiFetch("/api/cases");
-}
-
-function clearForm(){
-  ["fSystem","fTitle","fDesc","fRoot","fAction","fCli","fResult","fLesson","fTags"].forEach(id => $(id).value = "");
-  $("fDate").value = todayISO();
-  $("fCategory").selectedIndex = 0;
-  $("fSeverity").selectedIndex = 0;
-  editingId = null;
-  $("formTitle").textContent = "Kasus Baru";
-}
-
-function openForm(existing){
-  $("formPanel").classList.remove("hidden");
-  if(existing){
-    editingId = existing.id;
-    $("formTitle").textContent = "Edit Kasus " + existing.id;
-    $("fDate").value = existing.date;
-    $("fSystem").value = existing.system;
-    $("fTitle").value = existing.title;
-    $("fCategory").value = existing.category;
-    $("fSeverity").value = existing.severity;
-    $("fDesc").value = existing.desc;
-    $("fRoot").value = existing.root;
-    $("fAction").value = existing.action;
-    $("fCli").value = existing.cli || "";
-    $("fResult").value = existing.result;
-    $("fLesson").value = existing.lesson;
-    $("fTags").value = existing.tags.join(", ");
-  } else {
-    clearForm();
-  }
-  $("formPanel").scrollIntoView({behavior:"smooth", block:"center"});
-}
-
-function closeForm(){
-  $("formPanel").classList.add("hidden");
-  clearForm();
-}
-
-async function handleSave(){
-  const title = $("fTitle").value.trim();
-  if(!title){ alert("Judul kasus wajib diisi."); return; }
-  const tags = $("fTags").value.split(",").map(t=>t.trim()).filter(Boolean);
-
-  const payload = {
-    date: $("fDate").value || todayISO(),
-    system: $("fSystem").value.trim(),
-    title, category: $("fCategory").value, severity: $("fSeverity").value,
-    desc: $("fDesc").value.trim(), root: $("fRoot").value.trim(),
-    action: $("fAction").value.trim(), cli: $("fCli").value.trim(),
-    result: $("fResult").value.trim(), lesson: $("fLesson").value.trim(), tags
-  };
-
-  try{
-    if(editingId){
-      const existing = cases.find(c => c.id === editingId) || {};
-      payload.status = existing.status || "Terbuka";
-      payload.comments = existing.comments || [];
-      await apiFetch("/api/cases/" + encodeURIComponent(editingId), { method: "PUT", body: JSON.stringify(payload) });
-    } else {
-      payload.id = genId();
-      payload.status = "Terbuka";
-      payload.comments = [];
-      await apiFetch("/api/cases", { method: "POST", body: JSON.stringify(payload) });
+    function genId() {
+      const year = new Date().getFullYear();
+      const seq = (cases.length + 1).toString().padStart(3, "0");
+      let candidate = `PM-${year}-${seq}`;
+      let n = cases.length + 1;
+      while (cases.some(c => c.id === candidate)) {
+        n++;
+        candidate = `PM-${year}-${n.toString().padStart(3, "0")}`;
+      }
+      return candidate;
     }
-    await loadCases();
-    closeForm();
-    render();
-  }catch(e){
-    alert("Gagal menyimpan kasus: " + e.message);
-  }
-}
 
-async function handleDelete(id){
-  if(!confirm("Hapus kasus " + id + "? Tindakan ini tidak bisa dibatalkan.")) return;
-  try{
-    await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "DELETE" });
-    await loadCases();
-    render();
-  }catch(e){
-    alert("Gagal menghapus kasus: " + e.message);
-  }
-}
+    const CFG_BASE_KEY = "cfg_apiBase";
+    const CFG_TOKEN_KEY = "cfg_apiToken";
 
-async function addComment(id, text){
-  text = text.trim();
-  if(!text) return;
-  const c = cases.find(c => c.id === id);
-  if(!c) return;
-  const comments = (c.comments || []).concat([{ ts: new Date().toISOString(), text }]);
-  const payload = { ...c, comments };
-  try{
-    await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(payload) });
-    await loadCases();
-    render();
-    reopenCard(id);
-  }catch(e){
-    alert("Gagal menambah komentar: " + e.message);
-  }
-}
+    function getConfig() {
+      return {
+        base: (localStorage.getItem(CFG_BASE_KEY) || "").replace(/\/$/, ""),
+        token: localStorage.getItem(CFG_TOKEN_KEY) || ""
+      };
+    }
 
-async function toggleStatus(id){
-  const c = cases.find(c => c.id === id);
-  if(!c) return;
-  const newStatus = c.status === "Selesai" ? "Terbuka" : "Selesai";
-  let comments = c.comments || [];
-  if(newStatus === "Selesai"){
-    comments = comments.concat([{ ts: new Date().toISOString(), text: "— Kasus ditandai selesai —" }]);
-  }
-  const payload = { ...c, status: newStatus, comments };
-  try{
-    await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(payload) });
-    await loadCases();
-    render();
-    reopenCard(id);
-  }catch(e){
-    alert("Gagal mengubah status: " + e.message);
-  }
-}
+    function hasConfig() {
+      const cfg = getConfig();
+      return !!(cfg.base && cfg.token);
+    }
 
-function reopenCard(id){
-  // keep the case expanded after re-render since re-render collapses everything
-  const el = document.querySelector(`[data-case-id="${id}"]`);
-  if(el) el.classList.add("open");
-}
+    async function apiFetch(path, options = {}) {
+      const cfg = getConfig();
+      if (!cfg.base || !cfg.token) {
+        throw new Error("Belum dikonfigurasi. Klik tombol Pengaturan dulu.");
+      }
+      const res = await fetch(cfg.base + path, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + cfg.token,
+          ...(options.headers || {})
+        }
+      });
+      if (!res.ok) {
+        let msg = res.statusText;
+        try { const body = await res.json(); if (body.error) msg = body.error; } catch (e) { }
+        throw new Error(msg);
+      }
+      return res.json();
+    }
 
-function toMarkdown(c){
-  const commentsBlock = (c.comments && c.comments.length)
-    ? c.comments.map(cm => `- [${new Date(cm.ts).toLocaleString("id-ID")}] ${cm.text}`).join("\n")
-    : "-";
-  return `## ${c.id} — ${c.title}
+    async function loadCases() {
+      if (!hasConfig()) {
+        cases = [];
+        return;
+      }
+      cases = await apiFetch("/api/cases");
+    }
+
+    function clearForm() {
+      ["fSystem", "fTitle", "fDesc", "fRoot", "fAction", "fCli", "fResult", "fLesson", "fTags"].forEach(id => $(id).value = "");
+      $("fDate").value = todayISO();
+      $("fCategory").selectedIndex = 0;
+      $("fSeverity").selectedIndex = 0;
+      editingId = null;
+      $("formTitle").textContent = "Kasus Baru";
+    }
+
+    function openForm(existing) {
+      $("formPanel").classList.remove("hidden");
+      if (existing) {
+        editingId = existing.id;
+        $("formTitle").textContent = "Edit Kasus " + existing.id;
+        $("fDate").value = existing.date;
+        $("fSystem").value = existing.system;
+        $("fTitle").value = existing.title;
+        $("fCategory").value = existing.category;
+        $("fSeverity").value = existing.severity;
+        $("fDesc").value = existing.desc;
+        $("fRoot").value = existing.root;
+        $("fAction").value = existing.action;
+        $("fCli").value = existing.cli || "";
+        $("fResult").value = existing.result;
+        $("fLesson").value = existing.lesson;
+        $("fTags").value = existing.tags.join(", ");
+      } else {
+        clearForm();
+      }
+      $("formPanel").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function closeForm() {
+      $("formPanel").classList.add("hidden");
+      clearForm();
+    }
+
+    async function handleSave() {
+      const title = $("fTitle").value.trim();
+      if (!title) { alert("Judul kasus wajib diisi."); return; }
+      const tags = $("fTags").value.split(",").map(t => t.trim()).filter(Boolean);
+
+      const payload = {
+        date: $("fDate").value || todayISO(),
+        system: $("fSystem").value.trim(),
+        title, category: $("fCategory").value, severity: $("fSeverity").value,
+        desc: $("fDesc").value.trim(), root: $("fRoot").value.trim(),
+        action: $("fAction").value.trim(), cli: $("fCli").value.trim(),
+        result: $("fResult").value.trim(), lesson: $("fLesson").value.trim(), tags
+      };
+
+      try {
+        if (editingId) {
+          const existing = cases.find(c => c.id === editingId) || {};
+          payload.status = existing.status || "Terbuka";
+          payload.comments = existing.comments || [];
+          await apiFetch("/api/cases/" + encodeURIComponent(editingId), { method: "PUT", body: JSON.stringify(payload) });
+        } else {
+          payload.id = genId();
+          payload.status = "Terbuka";
+          payload.comments = [];
+          await apiFetch("/api/cases", { method: "POST", body: JSON.stringify(payload) });
+        }
+        await loadCases();
+        closeForm();
+        render();
+      } catch (e) {
+        alert("Gagal menyimpan kasus: " + e.message);
+      }
+    }
+
+    async function handleDelete(id) {
+      if (!confirm("Hapus kasus " + id + "? Tindakan ini tidak bisa dibatalkan.")) return;
+      try {
+        await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "DELETE" });
+        await loadCases();
+        render();
+      } catch (e) {
+        alert("Gagal menghapus kasus: " + e.message);
+      }
+    }
+
+    async function addComment(id, text) {
+      text = text.trim();
+      if (!text) return;
+      const c = cases.find(c => c.id === id);
+      if (!c) return;
+      const comments = (c.comments || []).concat([{ ts: new Date().toISOString(), text }]);
+      const payload = { ...c, comments };
+      try {
+        await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(payload) });
+        await loadCases();
+        render();
+        reopenCard(id);
+      } catch (e) {
+        alert("Gagal menambah komentar: " + e.message);
+      }
+    }
+
+    async function toggleStatus(id) {
+      const c = cases.find(c => c.id === id);
+      if (!c) return;
+      const newStatus = c.status === "Selesai" ? "Terbuka" : "Selesai";
+      let comments = c.comments || [];
+      if (newStatus === "Selesai") {
+        comments = comments.concat([{ ts: new Date().toISOString(), text: "— Kasus ditandai selesai —" }]);
+      }
+      const payload = { ...c, status: newStatus, comments };
+      try {
+        await apiFetch("/api/cases/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify(payload) });
+        await loadCases();
+        render();
+        reopenCard(id);
+      } catch (e) {
+        alert("Gagal mengubah status: " + e.message);
+      }
+    }
+
+    function reopenCard(id) {
+      // keep the case expanded after re-render since re-render collapses everything
+      const el = document.querySelector(`[data-case-id="${id}"]`);
+      if (el) el.classList.add("open");
+    }
+
+    function toMarkdown(c) {
+      const commentsBlock = (c.comments && c.comments.length)
+        ? c.comments.map(cm => `- [${new Date(cm.ts).toLocaleString("id-ID")}] ${cm.text}`).join("\n")
+        : "-";
+      return `## ${c.id} — ${c.title}
 
 **Tanggal:** ${c.date}  **Sistem:** ${c.system}  **Kategori:** ${c.category}  **Severity:** ${c.severity}  **Status:** ${c.status || "Terbuka"}
 
@@ -586,58 +1045,58 @@ ${commentsBlock}
 
 **Tags:** ${c.tags.join(", ") || "-"}
 `;
-}
+    }
 
-function copyMarkdown(c){
-  const md = toMarkdown(c);
-  navigator.clipboard.writeText(md).then(()=>{
-    alert("Markdown kasus " + c.id + " disalin ke clipboard.");
-  }).catch(()=>{
-    prompt("Salin manual teks di bawah ini:", md);
-  });
-}
+    function copyMarkdown(c) {
+      const md = toMarkdown(c);
+      navigator.clipboard.writeText(md).then(() => {
+        alert("Markdown kasus " + c.id + " disalin ke clipboard.");
+      }).catch(() => {
+        prompt("Salin manual teks di bawah ini:", md);
+      });
+    }
 
-function render(){
-  const q = $("searchBox").value.toLowerCase();
-  const sevFilter = $("filterSev").value;
-  const statusFilter = $("filterStatus").value;
+    function render() {
+      const q = $("searchBox").value.toLowerCase();
+      const sevFilter = $("filterSev").value;
+      const statusFilter = $("filterStatus").value;
 
-  const filtered = cases.filter(c => {
-    const matchesQ = !q || [c.title, c.system, c.tags.join(" ")].join(" ").toLowerCase().includes(q);
-    const matchesSev = !sevFilter || c.severity === sevFilter;
-    const matchesStatus = !statusFilter || (c.status || "Terbuka") === statusFilter;
-    return matchesQ && matchesSev && matchesStatus;
-  });
+      const filtered = cases.filter(c => {
+        const matchesQ = !q || [c.title, c.system, c.tags.join(" ")].join(" ").toLowerCase().includes(q);
+        const matchesSev = !sevFilter || c.severity === sevFilter;
+        const matchesStatus = !statusFilter || (c.status || "Terbuka") === statusFilter;
+        return matchesQ && matchesSev && matchesStatus;
+      });
 
-  $("statTotal").textContent = cases.length;
-  $("statOpen").textContent = cases.filter(c => (c.status || "Terbuka") === "Terbuka").length;
-  const thisMonth = new Date().toISOString().slice(0,7);
-  $("statMonth").textContent = cases.filter(c => c.date && c.date.slice(0,7) === thisMonth).length;
+      $("statTotal").textContent = cases.length;
+      $("statOpen").textContent = cases.filter(c => (c.status || "Terbuka") === "Terbuka").length;
+      const thisMonth = new Date().toISOString().slice(0, 7);
+      $("statMonth").textContent = cases.filter(c => c.date && c.date.slice(0, 7) === thisMonth).length;
 
-  const listArea = $("listArea");
-  listArea.innerHTML = "";
+      const listArea = $("listArea");
+      listArea.innerHTML = "";
 
-  if(cases.length === 0){
-    $("emptyState").classList.remove("hidden");
-    return;
-  }
-  $("emptyState").classList.add("hidden");
+      if (cases.length === 0) {
+        $("emptyState").classList.remove("hidden");
+        return;
+      }
+      $("emptyState").classList.add("hidden");
 
-  filtered.forEach(c => {
-    const status = c.status || "Terbuka";
-    const comments = c.comments || [];
-    const div = document.createElement("div");
-    div.className = "case sev-" + c.severity;
-    div.setAttribute("data-case-id", c.id);
-    const commentsHtml = comments.length
-      ? comments.map(cm => `
+      filtered.forEach(c => {
+        const status = c.status || "Terbuka";
+        const comments = c.comments || [];
+        const div = document.createElement("div");
+        div.className = "case sev-" + c.severity;
+        div.setAttribute("data-case-id", c.id);
+        const commentsHtml = comments.length
+          ? comments.map(cm => `
           <div class="comment-item">
             <div class="c-meta">${new Date(cm.ts).toLocaleString("id-ID")}</div>
             <div class="c-text">${escapeHtml(cm.text)}</div>
           </div>`).join("")
-      : `<div class="no-comments">Belum ada komentar / update progres.</div>`;
+          : `<div class="no-comments">Belum ada komentar / update progres.</div>`;
 
-    div.innerHTML = `
+        div.innerHTML = `
       <div class="case-head">
         <div>
           <div class="case-id mono">${c.id} &middot; ${c.date}</div>
@@ -661,7 +1120,7 @@ function render(){
           </div></div>` : ""}
         <div class="kv"><div class="k">Hasil</div><div class="v">${escapeHtml(c.result || "-")}</div></div>
         ${c.lesson ? `<div class="kv"><div class="k">Pembelajaran / Relevansi Cloud Security</div><div class="v">${escapeHtml(c.lesson)}</div></div>` : ""}
-        ${c.tags.length ? `<div class="kv"><div class="k">Tags</div><div class="v">${c.tags.map(t=>`<span class="tag cat" style="margin-right:6px;">${escapeHtml(t)}</span>`).join("")}</div></div>` : ""}
+        ${c.tags.length ? `<div class="kv"><div class="k">Tags</div><div class="v">${c.tags.map(t => `<span class="tag cat" style="margin-right:6px;">${escapeHtml(t)}</span>`).join("")}</div></div>` : ""}
         <div class="kv">
           <div class="k">Komentar / Update Progres</div>
           <div class="comments">${commentsHtml}</div>
@@ -678,94 +1137,95 @@ function render(){
         </div>
       </div>
     `;
-    div.addEventListener("click", (e) => {
-      if(e.target.closest("[data-action]") || e.target.closest("textarea")) return;
-      div.classList.toggle("open");
-    });
-    div.querySelector('[data-action="edit"]').addEventListener("click", (e)=>{ e.stopPropagation(); openForm(c); });
-    div.querySelector('[data-action="copy"]').addEventListener("click", (e)=>{ e.stopPropagation(); copyMarkdown(c); });
-    const cliBtn = div.querySelector('[data-action="copy-cli"]');
-    if(cliBtn){
-      cliBtn.addEventListener("click", (e)=>{
-        e.stopPropagation();
-        navigator.clipboard.writeText(c.cli).then(()=>{
-          cliBtn.textContent = "Tersalin!";
-          setTimeout(()=> cliBtn.textContent = "Salin", 1500);
-        }).catch(()=> prompt("Salin manual:", c.cli));
+        div.addEventListener("click", (e) => {
+          if (e.target.closest("[data-action]") || e.target.closest("textarea")) return;
+          div.classList.toggle("open");
+        });
+        div.querySelector('[data-action="edit"]').addEventListener("click", (e) => { e.stopPropagation(); openForm(c); });
+        div.querySelector('[data-action="copy"]').addEventListener("click", (e) => { e.stopPropagation(); copyMarkdown(c); });
+        const cliBtn = div.querySelector('[data-action="copy-cli"]');
+        if (cliBtn) {
+          cliBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(c.cli).then(() => {
+              cliBtn.textContent = "Tersalin!";
+              setTimeout(() => cliBtn.textContent = "Salin", 1500);
+            }).catch(() => prompt("Salin manual:", c.cli));
+          });
+        }
+        div.querySelector('[data-action="delete"]').addEventListener("click", (e) => { e.stopPropagation(); handleDelete(c.id); });
+        div.querySelector('[data-action="toggle-status"]').addEventListener("click", (e) => { e.stopPropagation(); toggleStatus(c.id); });
+        div.querySelector('[data-action="add-comment"]').addEventListener("click", (e) => {
+          e.stopPropagation();
+          const ta = div.querySelector('[data-role="comment-input"]');
+          addComment(c.id, ta.value);
+          ta.value = "";
+        });
+        listArea.appendChild(div);
       });
     }
-    div.querySelector('[data-action="delete"]').addEventListener("click", (e)=>{ e.stopPropagation(); handleDelete(c.id); });
-    div.querySelector('[data-action="toggle-status"]').addEventListener("click", (e)=>{ e.stopPropagation(); toggleStatus(c.id); });
-    div.querySelector('[data-action="add-comment"]').addEventListener("click", (e)=>{
-      e.stopPropagation();
-      const ta = div.querySelector('[data-role="comment-input"]');
-      addComment(c.id, ta.value);
-      ta.value = "";
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    $("btnNew").addEventListener("click", () => openForm(null));
+    $("btnCancel").addEventListener("click", closeForm);
+    $("btnSave").addEventListener("click", handleSave);
+    $("searchBox").addEventListener("input", render);
+    $("filterSev").addEventListener("change", render);
+    $("filterStatus").addEventListener("change", render);
+
+    $("btnSettings").addEventListener("click", () => {
+      const cfg = getConfig();
+      $("cfgBase").value = cfg.base;
+      $("cfgToken").value = cfg.token;
+      $("settingsPanel").classList.remove("hidden");
+      $("settingsPanel").scrollIntoView({ behavior: "smooth", block: "center" });
     });
-    listArea.appendChild(div);
-  });
-}
+    $("btnSettingsCancel").addEventListener("click", () => {
+      $("settingsPanel").classList.add("hidden");
+    });
+    $("btnSettingsSave").addEventListener("click", async () => {
+      const base = $("cfgBase").value.trim();
+      const token = $("cfgToken").value.trim();
+      if (!base || !token) { alert("Isi Worker Base URL dan Token dulu."); return; }
+      localStorage.setItem(CFG_BASE_KEY, base.replace(/\/$/, ""));
+      localStorage.setItem(CFG_TOKEN_KEY, token);
+      $("settingsPanel").classList.add("hidden");
+      await refreshApp();
+    });
 
-function escapeHtml(str){
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
+    async function refreshApp() {
+      $("configNeeded").classList.add("hidden");
+      if (!hasConfig()) {
+        $("configNeeded").classList.remove("hidden");
+        cases = [];
+        render();
+        return;
+      }
+      try {
+        await loadCases();
+        render();
+      } catch (e) {
+        $("configNeeded").classList.remove("hidden");
+        $("configNeeded").innerHTML = "Gagal terhubung ke backend: " + escapeHtml(e.message) +
+          "<br>Cek lagi Worker URL dan Token di Pengaturan.";
+      }
+    }
 
-$("btnNew").addEventListener("click", ()=> openForm(null));
-$("btnCancel").addEventListener("click", closeForm);
-$("btnSave").addEventListener("click", handleSave);
-$("searchBox").addEventListener("input", render);
-$("filterSev").addEventListener("change", render);
-$("filterStatus").addEventListener("change", render);
-
-$("btnSettings").addEventListener("click", () => {
-  const cfg = getConfig();
-  $("cfgBase").value = cfg.base;
-  $("cfgToken").value = cfg.token;
-  $("settingsPanel").classList.remove("hidden");
-  $("settingsPanel").scrollIntoView({behavior:"smooth", block:"center"});
-});
-$("btnSettingsCancel").addEventListener("click", () => {
-  $("settingsPanel").classList.add("hidden");
-});
-$("btnSettingsSave").addEventListener("click", async () => {
-  const base = $("cfgBase").value.trim();
-  const token = $("cfgToken").value.trim();
-  if(!base || !token){ alert("Isi Worker Base URL dan Token dulu."); return; }
-  localStorage.setItem(CFG_BASE_KEY, base.replace(/\/$/, ""));
-  localStorage.setItem(CFG_TOKEN_KEY, token);
-  $("settingsPanel").classList.add("hidden");
-  await refreshApp();
-});
-
-async function refreshApp(){
-  $("configNeeded").classList.add("hidden");
-  if(!hasConfig()){
-    $("configNeeded").classList.remove("hidden");
-    cases = [];
-    render();
-    return;
-  }
-  try{
-    await loadCases();
-    render();
-  }catch(e){
-    $("configNeeded").classList.remove("hidden");
-    $("configNeeded").innerHTML = "Gagal terhubung ke backend: " + escapeHtml(e.message) +
-      "<br>Cek lagi Worker URL dan Token di Pengaturan.";
-  }
-}
-
-(async function init(){
-  $("loadingMsg").classList.add("hidden");
-  $("appBody").classList.remove("hidden");
-  clearForm();
-  if(!hasConfig()){
-    $("btnSettings").click();
-  }
-  await refreshApp();
-})();
-</script>
+    (async function init() {
+      $("loadingMsg").classList.add("hidden");
+      $("appBody").classList.remove("hidden");
+      clearForm();
+      if (!hasConfig()) {
+        $("btnSettings").click();
+      }
+      await refreshApp();
+    })();
+  </script>
 </body>
+
 </html>
